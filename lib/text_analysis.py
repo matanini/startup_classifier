@@ -64,8 +64,8 @@ def transfer_raw_text_to_dataframe(filename):
 def create_simple_pipeline():
     return Pipeline([('vect', CountVectorizer()),('clf', MultinomialNB())])
 
-def fit(clf_pipeline, df_train):
-    clf_pipeline.fit(df_train['extracted_text'], df_train['person_name'])
+def fit(clf_pipeline, X, y):
+    clf_pipeline.fit(X, y)
 
 
 def predict(clf_trained_pipeline, x_test):

@@ -37,11 +37,15 @@ def remove_missing_str_val_rows(df, string_cols):
 # In[ ]:
 
 
-def repair_numeric_missing_vals(df, numeric_cols):
+def repair_numeric_missing_vals_median(df, numeric_cols):
     for col in numeric_cols:
         df[col] = df[col].fillna(df[col].median())
     return df.copy()
 
+def repair_numeric_missing_vals_zero(df, numeric_cols):
+    for col in numeric_cols:
+        df[col] = df[col].fillna(0)
+    return df.copy()
 
 # In[1]:
 

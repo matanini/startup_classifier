@@ -4,3 +4,6 @@ geckodriver.log
 df0_5000.csv
 df0_2000.csv
 cleaned.csv
+err_log0_5000.txt
+err_log5000_13102.txt
+df5000_13102.csv

@@ -12,6 +12,9 @@ def vectorize_and_replace(df, cols: list, prefix: str):
     lb = preprocessing.LabelBinarizer()
     vec = lb.fit_transform(df[cols]).tolist()
 
+    # vec = [int(x) for x in vec.split(',')]
+
+
     df[f"{prefix}_vec"] = vec
     df = df.drop(cols, axis = 1)
     return df

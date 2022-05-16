@@ -35,7 +35,11 @@ def remove_missing_str_val_rows(df, string_cols):
 
 
 # In[ ]:
+def repair_categorical_missing_vals(df,cols):
+    for col in cols:
+        df[col] = df[col].fillna('na') #Not Avilable
 
+    return df.copy()
 
 def repair_numeric_missing_vals_median(df, numeric_cols):
     for col in numeric_cols:
@@ -47,38 +51,29 @@ def repair_numeric_missing_vals_zero(df, numeric_cols):
         df[col] = df[col].fillna(0)
     return df.copy()
 
-# In[1]:
-
 
 def get_frequent_elements(df, col_name, num_top_elements):
     return df[col_name].value_counts()[:num_top_elements].sort_index()
 
-
-# In[ ]:
 
 
 def one_dim_plot(sr, plot_type, axis):
     sr.plot(kind=plot_type, ax = axis)
 
 
-# In[ ]:
-
 
 def plot_frequent_elements(df, df_in_params):
+    fig = plt.figure(figsize=(20,20))
     fig, axes = plt.subplots(1,3, figsize=(20,5))
     for i, row in df_in_params.iterrows():
         sr = get_frequent_elements(df, row['col_name'], row['num_top_elements'])
         one_dim_plot(sr, row['plot_type'], axes[i])
 
 
-# In[ ]:
-
 
 def cross_tabulation(df, col_name, other_col_name):
     return pd.crosstab(df[col_name], df[other_col_name], normalize='index')
 
-
-# In[ ]:
 
 
 def plot_cross_tabulation(df, col_names, other_col_name):
@@ -89,8 +84,6 @@ def plot_cross_tabulation(df, col_names, other_col_name):
         ct.plot(kind='line', ax = axes[i])
         i=i+1
 
-
-# In[ ]:
 
 
 def get_highly_correlated_cols(df):
@@ -109,9 +102,6 @@ def get_highly_correlated_cols(df):
 #                 print(correlations, tuple_arr)
 #                 print(row[column])
     return correlations, tuple_arr
-
-
-# In[ ]:
 
 
 def plot_high_correlated_scatters(df):

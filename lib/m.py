@@ -56,7 +56,8 @@ def decode_price(price: str):
     return new_price
 
 def conv_to_float(df):
-    for i, val in enumerate(df):
-        if val != 0:
-            df.iloc[i] = decode_price(val)
+    if df.dtype.kind not in "biufc":
+        for i, val in enumerate(df):
+            if val != 0:
+                df.iloc[i] = decode_price(val)
     return df

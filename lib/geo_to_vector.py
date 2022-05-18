@@ -4,13 +4,21 @@ import numpy as np
 import random 
 import time
 from selenium import webdriver
+from webdriver_manager.firefox import GeckoDriverManager
+from selenium.webdriver.firefox.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 
 
-def get_driver():
+def get_chrome_driver():
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
+    return driver
+
+def get_firefox_driver():
+    options = webdriver.FirefoxOptions()
+    # options.headless = True
+    driver = webdriver.Firefox(options = options, service=Service(GeckoDriverManager().install()))
     return driver
 
 
@@ -134,9 +142,13 @@ def get_not_in_list_data(driver, l: list):
 
 
 
-def vectorize_geo(dataframe: pd.DataFrame) -> pd.DataFrame: 
+def vectorize_geo(dataframe: pd.DataFrame, browser='') -> pd.DataFrame: 
     df = dataframe.copy()
-    driver = get_driver()
+
+    if browser.lower() == 'c' or browser.lower() == 'chrome':
+        driver = get_chrome_driver()
+    else:
+        driver = get_firefox_driver()
 
     df['geographical markets'] = listify_geo_markets(df)
     countries = get_location_list(df)

@@ -4,13 +4,21 @@ import numpy as np
 import random 
 import time
 from selenium import webdriver
+from webdriver_manager.firefox import GeckoDriverManager
+from selenium.webdriver.firefox.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 
 
-def get_driver():
+def get_chrome_driver():
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
+    return driver
+
+def get_firefox_driver():
+    options = webdriver.FirefoxOptions()
+    # options.headless = True
+    driver = webdriver.Firefox(options = options, service=Service(GeckoDriverManager().install()))
     return driver
 
 
@@ -36,7 +44,7 @@ def get_location_list(df: pd.DataFrame)-> list :
 
 
 
-def get_world_pop(driver: webdriver.WebDriver) -> int :
+def get_world_pop(driver) -> int :
     """Get world population by scraping www.worldometers.info"""
     
     
@@ -51,7 +59,7 @@ def get_world_pop(driver: webdriver.WebDriver) -> int :
 
 
 
-def get_countries_population(driver: webdriver.WebDriver) -> dict:
+def get_countries_population(driver) -> dict:
     """Get countries population by scraping www.worldometers.info"""
     
     
@@ -70,7 +78,7 @@ def get_countries_population(driver: webdriver.WebDriver) -> dict:
     
 
 
-def get_not_in_list_data(driver: webdriver.WebDriver, l: list):
+def get_not_in_list_data(driver, l: list):
     d = {}
     
     url = "https://www.worldometers.info/world-population/"  #  "western-europe-population/"
@@ -134,9 +142,13 @@ def get_not_in_list_data(driver: webdriver.WebDriver, l: list):
 
 
 
-def vectorize_geo(dataframe: pd.DataFrame) -> pd.DataFrame: 
+def vectorize_geo(dataframe: pd.DataFrame, browser='') -> pd.DataFrame: 
     df = dataframe.copy()
-    driver = get_driver()
+
+    if browser.lower() == 'c' or browser.lower() == 'chrome':
+        driver = get_chrome_driver()
+    else:
+        driver = get_firefox_driver()
 
     df['geographical markets'] = listify_geo_markets(df)
     countries = get_location_list(df)

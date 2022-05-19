@@ -21,6 +21,16 @@ def get_firefox_driver():
     driver = webdriver.Firefox(options = options, service=Service(GeckoDriverManager().install()))
     return driver
 
+def get_linux_driver():
+    options = webdriver.ChromeOptions()
+    options.add_argument("disable-infobars")
+    options.add_argument("start-minimized")
+    options.add_argument("disable-dev-shm-usage")
+    options.add_argument("no-sandbox")
+    options.add_argument("disable-blink-features=AutomationControlled")
+    options.add_experimental_option("excludeSwitches", ["enable-automation"])
+    driver = webdriver.Chrome("../chromedriver", options = options)
+    return driver
 
 def listify_geo_markets(df):
     l = []
@@ -134,12 +144,20 @@ def get_not_in_list_data(driver, l: list):
 
 
 def vectorize_geo(dataframe: pd.DataFrame, browser='') -> pd.DataFrame: 
+    """Func to calculate geographic market share\n
+    browser: 'c'-chrome, 'l'-linux machine\n
+    return a new dataframe with geo_market_per column"""
     df = dataframe.copy()
 
     if browser.lower() == 'c' or browser.lower() == 'chrome':
         driver = get_chrome_driver()
+
+    elif browser == 'l' or browser=='linux':
+        driver = get_linux_driver()
+
     else:
         driver = get_firefox_driver()
+    
 
     df['geographical markets'] = listify_geo_markets(df)
     countries = get_location_list(df)
@@ -190,7 +208,7 @@ def vectorize_geo(dataframe: pd.DataFrame, browser='') -> pd.DataFrame:
     geo_list = df['geographical markets'].tolist()
     for list in geo_list:
         sum = 0
-        if len(list)>0 :
+        if list is not np.nan and len(list)>0 :
             for country in list :
                 if country in country_pop_percent.keys() :
                     sum += country_pop_percent[country]
@@ -200,7 +218,7 @@ def vectorize_geo(dataframe: pd.DataFrame, browser='') -> pd.DataFrame:
 
     driver.quit()
     df['geo_market_per'] = per_list
-    print(f"shape of df['geo_market_per']: {df['geo_market_per'].shape}")
+    # print(f"shape of df['geo_market_per']: {df['geo_market_per'].shape}")
     return df
 
 

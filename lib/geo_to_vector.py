@@ -143,12 +143,13 @@ def get_not_in_list_data(driver, l: list):
 
 
 def vectorize_geo(dataframe: pd.DataFrame, browser='') -> pd.DataFrame: 
-    df = dataframe.copy()
 
     if browser.lower() == 'c' or browser.lower() == 'chrome':
         driver = get_chrome_driver()
     else:
         driver = get_firefox_driver()
+        
+    df = dataframe.copy()
 
     df['geographical markets'] = listify_geo_markets(df)
     countries = get_location_list(df)

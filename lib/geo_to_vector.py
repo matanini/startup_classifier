@@ -145,7 +145,7 @@ def get_not_in_list_data(driver, l: list):
 
 def vectorize_geo(dataframe: pd.DataFrame, browser='') -> pd.DataFrame: 
     """Func to calculate geographic market share\n
-    browser: 'c'-chrome, 'l'-linux machine\n
+    browser: 'c'-chrome, 'l'-linux machine, Firefox default\n
     return a new dataframe with geo_market_per column"""
     df = dataframe.copy()
 

@@ -123,22 +123,41 @@ def get_best_num_of_clusters_for_k_means(dataset, num_cluster_options, init_val,
     
     return best_score, num_clusters
 
+def get_best_kmeans_values(dataset, num_cluster_options, init_vals, n_init_val, rand_state):
+    scores = []
+    ns = []
+    inits = []
+
+    for init in init_vals:
+        score, n = get_best_num_of_clusters_for_k_means(dataset, num_cluster_options, init, n_init_val, rand_state)
+        ns.append(n)
+        scores.append(score)
+        inits.append(init)
+    
+    best_score_ind = scores.index(max(scores))
+    return scores[best_score_ind], ns[best_score_ind], inits[best_score_ind]
+
 
 def get_best_linkage_method(dataset, num_clusters, linkage_options):
     scores = []
     clusters = {}
     best_score=0
     best_linkage = None
+    best_n = 0
+    sel_model = None
     for linkage_val in linkage_options:
-        model, y_pred = perform_hierarchical_clustering(dataset, num_clusters, linkage_val)
-        score = silhouette_score(dataset, y_pred)
-        clusters[score] = linkage_val
-        scores.append(score)
-        if(score>best_score):
-            best_score = score
-            best_linkage = linkage_val
+        for n in num_clusters:
+            model, y_pred = perform_hierarchical_clustering(dataset, n, linkage_val)
+            score = silhouette_score(dataset, y_pred)
+            clusters[score] = linkage_val
+            scores.append(score)
+            if(score>best_score):
+                best_score = score
+                best_linkage = linkage_val
+                best_n = n
+                sel_model = model
             
-    return best_score, best_linkage
+    return sel_model, best_score, best_linkage, best_n
 
 
 def get_best_params_for_dbscan(dataset, eps_options, min_samples_options):

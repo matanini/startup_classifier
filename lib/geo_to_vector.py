@@ -21,10 +21,20 @@ def get_firefox_driver():
     driver = webdriver.Firefox(options = options, service=Service(GeckoDriverManager().install()))
     return driver
 
+def get_linux_driver():
+    options = webdriver.ChromeOptions()
+    options.add_argument("disable-infobars")
+    options.add_argument("start-minimized")
+    options.add_argument("disable-dev-shm-usage")
+    options.add_argument("no-sandbox")
+    options.add_argument("disable-blink-features=AutomationControlled")
+    options.add_experimental_option("excludeSwitches", ["enable-automation"])
+    driver = webdriver.Chrome("../chromedriver", options = options)
+    return driver
 
 def listify_geo_markets(df):
     l = []
-    for i,val in enumerate(df['geographical markets']):
+    for val in df['geographical markets']:
         if val is not np.nan:
             l.append(val.split(', '))
         else :
@@ -46,16 +56,13 @@ def get_location_list(df: pd.DataFrame)-> list :
 
 def get_world_pop(driver) -> int :
     """Get world population by scraping www.worldometers.info"""
-    
-    
 
     url = "https://www.worldometers.info/world-population/"
     driver.get(url)
-    population = driver.find_element(By.CLASS_NAME, "maincounter-number").text
-    
-    pop = population.split(',')
-    num = ''.join(pop)
-    return int(num)
+    time.sleep(random.uniform(1,2))
+
+    population = int(''.join(driver.find_element(By.CLASS_NAME, "maincounter-number").text.split(',')))
+    return int(population)
 
 
 
@@ -66,24 +73,24 @@ def get_countries_population(driver) -> dict:
     
     url = "https://www.worldometers.info/world-population/population-by-country/"
     driver.get(url)
+    time.sleep(random.uniform(1,2))
     d = {}
     table = driver.find_element(By.TAG_NAME, "tbody").find_elements(By.TAG_NAME, "tr")
 
     for row in table:
         elements = row.find_elements(By.TAG_NAME, "td")
-        d.update({elements[1].text.lower(): elements[2].text.lower()})
+        d.update({elements[1].text.lower(): int(''.join(elements[2].text.split(',')))})
     
-    
+    time.sleep(random.uniform(1,2))
     return d
     
 
 
 def get_not_in_list_data(driver, l: list):
-    d = {}
+    ret_list = []
     
     url = "https://www.worldometers.info/world-population/"  #  "western-europe-population/"
     postfix=['','ern']
-    americas_population = 0
 
     for country in l:
 
@@ -95,12 +102,12 @@ def get_not_in_list_data(driver, l: list):
             driver.get(f'{url}northern-america-population')
             time.sleep(random.uniform(0.5,1.5))
             americas_population += int(''.join(driver.find_element(By.CLASS_NAME, "maincounter-number").text.split(',')))
-            d.update({country: americas_population})
+            ret_list.append(americas_population)
 
         elif country == 'southeast asia':
             driver.get(f'{url}south-eastern-asia-population')
             population = int(''.join(driver.find_element(By.CLASS_NAME, "maincounter-number").text.split(',')))
-            d.update({country: population})
+            ret_list.append(population)
 
         elif country.count(' ') == 0:
             try:
@@ -108,14 +115,11 @@ def get_not_in_list_data(driver, l: list):
                 driver.get(new_url)
                 time.sleep(random.uniform(0.5,1.5))
                 population = int(''.join(driver.find_element(By.CLASS_NAME, "maincounter-number").text.split(',')))
-                if population is not None:
-                    d.update({country: population})
-                    continue
+                ret_list.append(population)
                     
             except Exception as e:
-                pass
-                # print("Error on "+ new_url)
-                # print(str(e))
+                print("Error on "+ new_url)
+                print(str(e))
         else:
             sp_index = country.rindex(' ')
             for p in postfix:
@@ -125,35 +129,40 @@ def get_not_in_list_data(driver, l: list):
                     driver.get(new_url)
                     time.sleep(random.uniform(0.5,1.5))
                     population = int(''.join(driver.find_element(By.CLASS_NAME, "maincounter-number").text.split(',')))
-                    if population is not None:
-                        d.update({country: population})
-                        break
+                # if population is not None:
+                    ret_list.append(population)
+                    break
                     
                 except:
                     # print("Error on "+ new_url)
                     continue
         
         time.sleep(random.uniform(5,8))
-            
-
-
-    
-    return d
+             
+    return ret_list
 
 
 
 def vectorize_geo(dataframe: pd.DataFrame, browser='') -> pd.DataFrame: 
+    """Func to calculate geographic market share\n
+    browser: 'c'-chrome, 'l'-linux machine, Firefox default\n
+    return a new dataframe with geo_market_per column"""
+    df = dataframe.copy()
 
     if browser.lower() == 'c' or browser.lower() == 'chrome':
         driver = get_chrome_driver()
+
+    elif browser == 'l' or browser=='linux':
+        driver = get_linux_driver()
+
     else:
         driver = get_firefox_driver()
-        
-    df = dataframe.copy()
+    
 
     df['geographical markets'] = listify_geo_markets(df)
     countries = get_location_list(df)
     country_pop = get_countries_population(driver)
+
 
     # Adjust necessary keys according to the dataframe 
 
@@ -174,7 +183,11 @@ def vectorize_geo(dataframe: pd.DataFrame, browser='') -> pd.DataFrame:
         if country not in country_pop.keys():
             not_in_list.append(country)
     
-    country_pop.update(get_not_in_list_data(driver, not_in_list))
+    not_in_list_res = get_not_in_list_data(driver, not_in_list)
+
+
+    for key, val in zip(not_in_list, not_in_list_res):
+        country_pop.update({key: val})
     
 
 
@@ -184,23 +197,28 @@ def vectorize_geo(dataframe: pd.DataFrame, browser='') -> pd.DataFrame:
     country_pop_percent = {}
     for key,val in country_pop.items():
 
-        if type(val) == str:
-            popu = val.split(',')
-            country_pop_percent.update({key : int(''.join(popu)) / world_population})
-        elif type(val) == int:
+        if type(val) == int:
             country_pop_percent.update({key : val / world_population})
+        else:
+            print(type(val))
+            country_pop_percent.update({key : 0})
 
     # Add a 'geo_market_per' to the df
-
-    for i, list in enumerate(df['geographical markets']):
+    per_list = []
+    geo_list = df['geographical markets'].tolist()
+    for list in geo_list:
         sum = 0
-        if list is not np.nan :
+        if list is not np.nan and len(list)>0 :
             for country in list :
                 if country in country_pop_percent.keys() :
                     sum += country_pop_percent[country]
-            df.loc[i,'geo_market_per'] = sum if sum < 1 else 1
+            per_list.append(sum if sum < 1 else 1)
+        else:
+            per_list.append(np.nan)
 
     driver.quit()
+    df['geo_market_per'] = per_list
+    # print(f"shape of df['geo_market_per']: {df['geo_market_per'].shape}")
     return df
 
 

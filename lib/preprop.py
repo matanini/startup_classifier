@@ -60,4 +60,5 @@ def conv_to_float(df):
         for i, val in enumerate(df):
             if val != 0:
                 df.iloc[i] = decode_price(val)
+                # print(f"{val} converted to {df.iloc[i]}")
     return df

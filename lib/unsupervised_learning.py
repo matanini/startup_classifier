@@ -80,22 +80,27 @@ def perform_density_based_clustering(dataset, epsilon_val, minimum_samples_val):
 
 
 def get_best_init_params_for_k_means(dataset, num_clusters, init_options, n_init_options, rand_state):
+    import tqdm.notebook as tqdm
     scores = []
     results = {}
     best_score, best_init_val, best_n_init_val = -1, None, None
-    for n in n_init_options:
-        for option in init_options:
-            km, predicted_vals = perform_k_means(dataset, num_clusters, option, n, rand_state)
-            score = km.inertia_
-            scores.append(score)
-            results[score] = {"option": option, "n": n}
+    with tqdm.tqdm(total=len(n_init_options)*len(init_options)) as pbar:
+        for n in n_init_options:
+            for option in init_options:
+                km, predicted_vals = perform_k_means(dataset, num_clusters, option, n, rand_state)
+                score = km.inertia_
+                scores.append(score)
+                results[score] = {"option": option, "n": n}
+                pbar.update(1)
     
-    scores.sort(reverse=True)
+    scores.sort(reverse=False)
     
-    for i in range(1, len(scores)):
-        score = scores[i]
-        if(scores[i-1] / scores[i] > 1.01):
-            best_score = scores[i]
+    best_score = scores[0]
+
+    # for i in range(1, len(scores)):
+    #     score = scores[i]
+    #     if(scores[i-1] / scores[i] > 1.01):
+    #         best_score = scores[i]
         
     return best_score, results[best_score]['option'], results[best_score]['n']
 

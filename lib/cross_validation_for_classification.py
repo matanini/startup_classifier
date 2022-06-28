@@ -41,10 +41,10 @@ def transfer_str_to_numeric_vals(dataset):
     return df
 
 
-def split_to_train_and_test(dataset, label_column, test_ratio, rand_state):
+def split_to_train_and_test(dataset, label_column, test_ratio, rand_state, stratify):
     X = dataset[dataset.columns[dataset.columns!=label_column]]
     y = dataset[label_column]
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_ratio, random_state=rand_state)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_ratio, random_state=rand_state, stratify=dataset[stratify])
     return X_train, X_test, y_train, y_test
 
 

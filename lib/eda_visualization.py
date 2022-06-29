@@ -28,7 +28,7 @@ def remove_duplicates(df, dup_col_name):
 # In[ ]:
 
 
-def remove_missing_str_val_rows(df, string_cols):
+def remove_missing_str_val_rows(df: pd.DataFrame , string_cols):
     for col in string_cols:
         df[col] = df[col].dropna()
     return df.copy()

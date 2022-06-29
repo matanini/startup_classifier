@@ -168,7 +168,6 @@ def get_best_linkage_method(dataset, num_clusters, linkage_options):
 def get_best_params_for_dbscan(dataset, eps_options, min_samples_options):
     scores = []
     results = {}
-    
     for minimum_samples_val in min_samples_options:
         for epsilon_val in eps_options:
             model, predicted_vals = perform_density_based_clustering(dataset, epsilon_val, minimum_samples_val)

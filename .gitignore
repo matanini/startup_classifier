@@ -3,3 +3,4 @@ geckodriver.log
 .ipynb_checkpoints/final_cleaned-checkpoint.csv
 *.zip
 data/dataframes
+data/dataframes/pca_df.csv

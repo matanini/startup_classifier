@@ -4,3 +4,4 @@ geckodriver.log
 *.zip
 data/dataframes
 data/dataframes/pca_df.csv
+data/dataframes/pca_df.csv
